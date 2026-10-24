@@ -22,6 +22,7 @@ import android.safetycenter.SafetyCenterManager
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.annotation.XmlRes
+import com.android.settings.R
 import com.android.settingslib.safetycenter.SafetyCenterDataTransformer
 import com.android.settingslib.safetycenter.SafetyCenterUiData
 import com.android.settingslib.safetycenter.SafetySourcePreference
@@ -84,9 +85,12 @@ object SafetyCenterSearchIndexUtils {
         val uiData = getCurrentSafetyCenterData(context)
         val userManager = context.getSystemService(UserManager::class.java)
 
-        if (uiData == null || userManager == null || screenTitleResId == null) {
+        if (userManager == null || screenTitleResId == null) {
             Log.w(TAG, "Missing data for dynamic indexing")
             return emptyList()
+        }
+        if (uiData == null) {
+            Log.w(TAG, "No Safety Center data, indexing fallback entries only")
         }
         val screenTitle = context.getString(screenTitleResId)
         val rawData = mutableListOf<SearchIndexableRaw>()
@@ -94,17 +98,28 @@ object SafetyCenterSearchIndexUtils {
         for (pref in prefConfigs) {
             val userHandle =
                 UserProfilesUtils.getUserHandleForProfile(context, pref.profile) ?: continue
-            val entry = uiData.getEntry(userHandle.identifier, pref.sourceId)
-            if (entry != null) {
-                val raw = SearchIndexableRaw(context)
-                raw.key = pref.key
-                raw.title = entry.title.toString()
-                raw.summaryOn = entry.summary?.toString()
-                raw.screenTitle = screenTitle
-                raw.keywords = pref.keywords
-                rawData.add(raw)
-            }
+            val entry = uiData?.getEntry(userHandle.identifier, pref.sourceId)
+            val title =
+                entry?.title?.toString()
+                    ?: FALLBACK_TITLES[pref.sourceId]?.let { context.getString(it) }
+                    ?: continue
+            val raw = SearchIndexableRaw(context)
+            raw.key = pref.key
+            raw.title = title
+            raw.summaryOn = entry?.summary?.toString()
+            raw.screenTitle = screenTitle
+            raw.keywords = pref.keywords
+            rawData.add(raw)
         }
         return rawData
     }
+
+    /**
+     * ZeroS: titles for sources every device has, used when Safety Center has no data for them
+     * yet. SettingsIntelligence builds the index once after a build or locale change, usually at
+     * first boot before the sources report, and keeps it until the next change, so an entry
+     * skipped then stayed unsearchable ("screen lock", "password").
+     */
+    private val FALLBACK_TITLES =
+        mapOf("AndroidLockScreen" to R.string.unlock_set_unlock_launch_picker_title)
 }

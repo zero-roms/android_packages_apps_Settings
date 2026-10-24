@@ -199,6 +199,7 @@ class SafetyCenterFragment : DashboardFragment() {
         private const val TAG = "SafetyCenterFragment"
         private const val SAFETY_ISSUES_BANNER_KEY = "issues_banner_group"
         private const val ARG_IS_QUICK_SETTINGS = "is_quick_settings"
+        private const val PAGE_SEARCH_KEY = "safety_center_page"
 
         fun initializeSubpagePrefControllerForSearchIndex(
             context: Context,
@@ -228,6 +229,21 @@ class SafetyCenterFragment : DashboardFragment() {
             object : BaseSearchIndexProvider(R.xml.safety_center_main_page) {
                 protected override fun isPageSearchEnabled(context: Context?): Boolean {
                     return Flags.enableSafetyCenterNewUi()
+                }
+
+                // ZeroS: the page itself, so "security" and "privacy" find it. Its home screen
+                // entry is not searchable (TopLevelSettings indexes nothing by design).
+                override fun getRawDataToIndex(
+                    context: Context,
+                    enabled: Boolean,
+                ): List<SearchIndexableRaw> {
+                    val rawData = super.getRawDataToIndex(context, enabled).toMutableList()
+                    val raw = SearchIndexableRaw(context)
+                    raw.key = PAGE_SEARCH_KEY
+                    raw.title = context.getString(R.string.safety_center_title)
+                    raw.screenTitle = raw.title
+                    rawData.add(raw)
+                    return rawData
                 }
 
                 override fun getDynamicRawDataToIndex(
