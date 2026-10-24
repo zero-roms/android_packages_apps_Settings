@@ -18,6 +18,7 @@ package com.android.settings.supervision
 
 import android.app.supervision.flags.Flags
 import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import com.android.settings.CatalystSettingsActivity
 import com.android.settings.supervision.SupervisionSessionController.Companion.SUPERVISION_AUTH_SESSION_KEY
@@ -26,6 +27,7 @@ import com.android.settings.supervision.shared.getSupervisionAppInstallActivityI
 import com.android.settings.supervision.shared.hasNecessarySupervisionComponent
 import com.android.settings.supervision.shared.isSupervisionPackageProfileOwner
 import com.android.settings.supervision.shared.readDefaultSupervisionPackageNameFromResources
+import com.android.settings.supervision.shared.readSystemSupervisionPackageNameFromResources
 import com.android.settings.supervision.shared.supervisionRoleHolders
 import com.android.settingslib.supervision.SupervisionLog.TAG
 
@@ -73,6 +75,11 @@ class SupervisionDashboardActivity :
                         Intent(this, SupervisionDashboardLoadingActivity::class.java)
                     startActivity(loadingActivity)
                 }
+            } else {
+                // ZeroS: no supervision app and no way to install it from here (Digital
+                // Wellbeing's parental controls card); open its app store page instead of
+                // closing silently.
+                openSupervisionAppStorePage()
             }
             finish()
             return
@@ -99,6 +106,18 @@ class SupervisionDashboardActivity :
 
     private fun shouldRedirectToSupervisionApp(): Boolean {
         return supervisionRoleHolders.isNotEmpty() || isSupervisionPackageProfileOwner()
+    }
+
+    private fun openSupervisionAppStorePage() {
+        val packageName = readSystemSupervisionPackageNameFromResources()
+        if (packageName.isNullOrEmpty()) return
+
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+        if (packageManager.queryIntentActivitiesAsUser(intent, 0, userId).isNotEmpty()) {
+            startActivity(intent)
+        } else {
+            Log.w(TAG, "No supervision app and no app store to install $packageName from.")
+        }
     }
 
     private fun getSupervisionAppIntent(): Intent? {
