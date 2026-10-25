@@ -36,12 +36,32 @@ class DeviceUnlockSubpageFragment : SafetyCenterSubpageFragment() {
 
     companion object {
         private const val TAG = "DeviceUnlockSubpage"
+        // Key of the screen lock SafetySourcePreference in safety_center_device_unlock_subpage.xml
+        private const val LOCK_SCREEN_KEY = "android_lock_screen"
 
         @JvmField
         val SEARCH_INDEX_DATA_PROVIDER: BaseSearchIndexProvider =
             object : BaseSearchIndexProvider(R.xml.safety_center_device_unlock_subpage) {
                 override fun isPageSearchEnabled(context: Context?): Boolean {
                     return Flags.enableSafetyCenterNewUi()
+                }
+
+                // ZeroS: the screen lock entry as static data. Its title otherwise comes only
+                // from live Safety Center data through the dynamic path below, which the search
+                // index never reads, so "screen lock" and "password" found nothing.
+                override fun getRawDataToIndex(
+                    context: Context,
+                    enabled: Boolean,
+                ): List<SearchIndexableRaw> {
+                    val rawData = super.getRawDataToIndex(context, enabled).toMutableList()
+                    val raw = SearchIndexableRaw(context)
+                    raw.key = LOCK_SCREEN_KEY
+                    raw.title = context.getString(R.string.unlock_set_unlock_launch_picker_title)
+                    raw.keywords =
+                        context.getString(R.string.safety_center_android_lock_screen_search_terms)
+                    raw.screenTitle = context.getString(R.string.device_unlock_subpage_title)
+                    rawData.add(raw)
+                    return rawData
                 }
 
                 override fun getDynamicRawDataToIndex(
