@@ -33,7 +33,9 @@ class LineageLegalPreference(
 ) : PreferenceMetadata, PreferenceTitleProvider, PreferenceAvailabilityProvider {
 
     private companion object {
-        const val PROPERTY_LINEAGE_LICENSE_URL = "ro.lineagelegal.url"
+        // ZeroS: the row opens ZeroS's terms and privacy policy (vendor/zeros LEGAL.md), set in
+        // vendor/zeros/config/common.mk. LineageOS's ro.lineagelegal.url is left unused.
+        const val PROPERTY_LINEAGE_LICENSE_URL = "ro.zeros.legal.url"
     }
 
     private fun getLicenseUrl(): String = SystemProperties.get(PROPERTY_LINEAGE_LICENSE_URL)

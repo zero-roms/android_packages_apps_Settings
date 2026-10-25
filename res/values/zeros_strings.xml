@@ -8,4 +8,6 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- About phone and Android version: title of the row showing the ZeroS release this phone runs [CHAR LIMIT=40] -->
     <string name="zeros_version">ZeroS version</string>
+    <!-- Legal information: row that opens ZeroS's terms and privacy policy [CHAR LIMIT=40] -->
+    <string name="zeros_legal_title">ZeroS legal</string>
 </resources>
