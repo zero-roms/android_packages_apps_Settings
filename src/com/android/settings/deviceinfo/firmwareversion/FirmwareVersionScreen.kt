@@ -72,7 +72,6 @@ open class FirmwareVersionScreen : PreferenceScreenMixin, PreferenceSummaryProvi
         preferenceHierarchy(context) {
             +FirmwareVersionDetailPreference()
             +ZeroSVersionDetailPreference()
-            +LineageVersionDetailPreference()
             +SecurityPatchLevelPreference()
             +LineageVendorSecurityPatchLevelPreference()
             +MainlineModuleVersionPreference()
